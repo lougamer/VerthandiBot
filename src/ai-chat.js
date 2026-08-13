@@ -19,7 +19,7 @@ client.on('messageCreate', async (message) => {
         await message.channel.sendTyping();
 
         try {
-            // Communicate directly with Google's API using standard native Web Queries
+            // Directly fetch data from Gemini using native web requests
             const response = await fetch(
                 `https://googleapis.com{process.env.GEMINI_API_KEY}`,
                 {
@@ -33,11 +33,11 @@ client.on('messageCreate', async (message) => {
 
             const data = await response.json();
             
-            // Extract the generated text message block from the response
-            if (data.candidates && data.candidates[0].content.parts[0].text) {
+            // Extract the text safely out of Gemini's response formatting
+            if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
                 return message.reply(data.candidates[0].content.parts[0].text);
             } else {
-                return message.reply("I received an empty response. Check your API Key!");
+                return message.reply("I connected to my brain, but received an empty response. Verify your Gemini API key variables!");
             }
         } catch (error) {
             console.error("AI Network Exception:", error);
@@ -47,4 +47,5 @@ client.on('messageCreate', async (message) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+
 
