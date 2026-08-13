@@ -653,3 +653,43 @@ export default botConfig;
 
 // Initialize the Gemini AI engine using your secret environment variable
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Native AI Listener - Requires zero npm package installations
+client.on('messageCreate', async (message) => {
+    // Ignore other bots to prevent infinite text loops
+    if (message.author.bot) return;
+
+    // Trigger only if your bot profile is explicitly tagged/mentioned in a chat room
+    if (message.mentions.has(client.user)) {
+        const prompt = message.content.replace(`<@${client.user.id}>`, '').trim();
+        if (!prompt) return message.reply("Hello! How can I help you today?");
+
+        // Simulate typing animation
+        await message.channel.sendTyping();
+
+        try {
+            // Send the prompt directly to Google's API using standard native Web Queries
+            const response = await fetch(
+                `https://googleapis.com{process.env.GEMINI_API_KEY}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                }
+            );
+
+            const data = await response.json();
+            
+            // Extract the generated chat text string safely out of Gemini's response object
+            if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+                return message.reply(data.candidates[0].content.parts[0].text);
+            } else {
+                return message.reply("I reached my AI brain, but the response was blank. Double-check your GEMINI_API_KEY value inside Railway!");
+            }
+        } catch (error) {
+            console.error("Gemini AI Exception Handler:", error);
+            return message.reply("I failed to process that request through my AI engine. Try again shortly!");
+        }
+    }
+});
