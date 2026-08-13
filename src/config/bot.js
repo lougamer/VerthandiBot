@@ -682,9 +682,20 @@ client.on('messageCreate', async (message) => {
             const data = await response.json();
             
             // Extract the generated chat text string safely out of Gemini's response object
-            if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
-                return message.reply(data.candidates[0].content.parts[0].text);
-            } else {
+            try {
+    // Safely check and extract text from the Gemini response structure
+    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (aiText) {
+        return await message.reply(aiText);
+    } else {
+        console.log("Gemini API Error Response:", JSON.stringify(data));
+        return await message.reply("I reached my AI brain, but the response came back empty!");
+    }
+} catch (err) {
+    console.error("Text extraction failed:", err);
+}
+ else {
                 return message.reply("I reached my AI brain, but the response was blank. Double-check your GEMINI_API_KEY value inside Railway!");
             }
         } catch (error) {
