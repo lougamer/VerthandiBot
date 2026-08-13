@@ -1,7 +1,5 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Initialize the Discord Bot client with message intents
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -10,14 +8,10 @@ const client = new Client({
     ]
 });
 
-// Load the Gemini key from your Railway Environment variables
-const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 client.on('messageCreate', async (message) => {
-    // Ignore messages sent by other bots
     if (message.author.bot) return;
 
-    // Only respond if your bot user profile is directly @tagged in a chat
+    // Trigger only if the bot profile is explicitly mentioned/tagged
     if (message.mentions.has(client.user)) {
         const prompt = message.content.replace(`<@${client.user.id}>`, '').trim();
         if (!prompt) return message.reply("Hello! How can I help you today?");
@@ -25,17 +19,32 @@ client.on('messageCreate', async (message) => {
         await message.channel.sendTyping();
 
         try {
-            const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
+            // Communicate directly with Google's API using standard native Web Queries
+            const response = await fetch(
+                `https://googleapis.com{process.env.GEMINI_API_KEY}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                }
+            );
+
+            const data = await response.json();
             
-            return message.reply(response.text());
+            // Extract the generated text message block from the response
+            if (data.candidates && data.candidates[0].content.parts[0].text) {
+                return message.reply(data.candidates[0].content.parts[0].text);
+            } else {
+                return message.reply("I received an empty response. Check your API Key!");
+            }
         } catch (error) {
-            console.error("Gemini AI Exception:", error);
-            return message.reply("My processing systems hit an API connection block!");
+            console.error("AI Network Exception:", error);
+            return message.reply("I failed to reach my AI brain. Try again shortly!");
         }
     }
 });
 
-// Connect to Discord using your existing token variable
 client.login(process.env.DISCORD_TOKEN);
+
