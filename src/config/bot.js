@@ -1,3 +1,5 @@
+import { GoogleGenAI } from '@google/genai';
+
 import { logger } from '../utils/logger.js';
 
 export const botConfig = {
@@ -649,3 +651,38 @@ export function getRandomColor() {
 }
 
 export default botConfig;
+
+// Initialize the Gemini AI engine using your secret environment variable
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+client.on('messageCreate', async (message) => {
+    // Ignore messages sent by other bots to prevent loops
+    if (message.author.bot) return; 
+
+    // The bot will only respond if it is directly @mentioned/tagged in a chat channel
+    if (message.mentions.has(client.user)) {
+        
+        // Clean the input text by stripping out the raw <@ID> mention string
+        const prompt = message.content.replace(`<@${client.user.id}>`, '').trim();
+        
+        // If the user just tagged the bot without typing a question
+        if (!prompt) return message.reply("Hello! How can I help you today?");
+
+        // Show visual typing indicator so users know the bot is generating an answer
+        await message.channel.sendTyping();
+
+        try {
+            // Forward the user's text message over to the Gemini API
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash', // A fast, high-performance model ideal for chat
+                contents: prompt,
+            });
+
+            // Deliver the AI response back to the user as a thread reply
+            await message.reply(response.text);
+        } catch (error) {
+            console.error("AI Generation Error:", error);
+            await message.reply("Sorry, my thinking circuits are currently overloaded!");
+        }
+    }
+});
