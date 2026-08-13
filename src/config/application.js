@@ -21,7 +21,7 @@ module.exports = {
     owners: process.env.OWNER_IDS?.split(",").map((id) => id.trim()).filter(Boolean) || [],
     defaultCooldown: 3,
     deleteCommands: false,
-    testGuildId: "YOUR_DISCORD_SERVER_ID_HERE",
+    testGuildId: process.env.TEST_GUILD_ID,
     maintenanceMode: process.env.MAINTENANCE_MODE === "true",
     prefix: process.env.PREFIX || "!",
   },
