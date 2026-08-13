@@ -1,11 +1,11 @@
 {
   "name": "titanbot",
   "version": "2.1.0",
-  "description": "A feature-rich Discord bot with music, system levels, logs, welcome card and dashboard features.",
-  "main": "src/bot.js",
+  "description": "A feature-rich Discord bot with AI chat capabilities.",
+  "main": "src/ai-chat.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node src/bot.js"
+    "start": "node src/ai-chat.js"
   },
   "dependencies": {
     "@discordjs/opus": "^0.9.0",
@@ -19,4 +19,5 @@
     "node": ">=20.0.0"
   }
 }
+
 
