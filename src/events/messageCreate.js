@@ -1,3 +1,5 @@
+import { GoogleGenAI } from '@google/genai';
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 import { Events } from 'discord.js';
 import { logger } from '../utils/logger.js';
 import { getLevelingConfig, getUserLevelData } from '../services/leveling/leveling.js';
@@ -24,7 +26,29 @@ const MESSAGE_XP_RATE_LIMIT_WINDOW_MS = 10000;
 
 export default {
   name: Events.MessageCreate,
-  async execute(message, client) {
+  // 1. Ignore background loops from other bots
+if (message.author.bot) return;
+
+// 2. Only fire if your specific bot is tagged in a channel
+if (message.mentions.has(message.client.user)) {
+    const prompt = message.content.replace(`<@${message.client.user.id}>`, '').trim();
+    if (!prompt) return message.reply("Hello! How can I help you today?");
+
+    // Send typing simulation to the channel UI
+    await message.channel.sendTyping();
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+        return message.reply(response.text);
+    } catch (error) {
+        console.error("Gemini AI Processing Error:", error);
+        return message.reply("My thinking components hit an internal network block!");
+    }
+}
+async execute(message, client) {
     try {
       if (message.author.bot || !message.guild) return;
 
