@@ -49,28 +49,50 @@ if (message.mentions.has(message.client.user)) {
         return message.reply("My thinking components hit an internal network block!");
     }
 }
-// Ignore actions initiated by other bots
-if (message.author.bot) return;
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Intercept message strings containing a direct user bot tag
-if (message.mentions.has(message.client.user)) {
-    const prompt = message.content.replace(`<@${message.client.user.id}>`, '').trim();
-    if (!prompt) return message.reply("Hello! How can I help you today?");
+// Safely initialize the AI only if the secret variable exists on Railway
+const apiKey = process.env.GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
-    // Simulate standard user typing behaviors on the active channel UI
-    await message.channel.sendTyping();
+module.exports = {
+    name: 'messageCreate',
+    async execute(message) {
+        // 1. Ignore other bots
+        if (message.author.bot) return;
 
-    try {
-        // Target the stable, default Gemini Flash engine 
-        const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        
-        return message.reply(response.text());
-    } catch (error) {
-        console.error("Gemini Engine Runtime Exception:", error);
-        return message.reply("My processing elements ran into a connection failure!");
-    }
+        // 2. Stop immediately if the Gemini key was not provided or setup failed
+        if (!ai) return;
+
+        // 3. Check if your bot was tagged/mentioned in the text channel
+        if (message.mentions.has(message.client.user)) {
+            
+            // Clean up the text by stripping out the raw <@ID> string
+            const prompt = message.content.replace(`<@${message.client.user.id}>`, '').trim();
+            
+            // If the user just tagged the bot without any questions
+            if (!prompt) {
+                return message.reply("Hello! How can I help you today?");
+            }
+
+            // Trigger the typing status indicator
+            await message.channel.sendTyping();
+
+            try {
+                // Call the high-speed 1.5 flash text generation model
+                const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                
+                // Reply to the user with the generated AI answer
+                return message.reply(response.text());
+            } catch (error) {
+                console.error("Gemini AI Processing Error:", error);
+                return message.reply("My processing elements ran into a connection failure!");
+            }
+        }
+    },
+};
 }
 async execute(message, client) {
     try {
