@@ -49,6 +49,29 @@ if (message.mentions.has(message.client.user)) {
         return message.reply("My thinking components hit an internal network block!");
     }
 }
+// Ignore actions initiated by other bots
+if (message.author.bot) return;
+
+// Intercept message strings containing a direct user bot tag
+if (message.mentions.has(message.client.user)) {
+    const prompt = message.content.replace(`<@${message.client.user.id}>`, '').trim();
+    if (!prompt) return message.reply("Hello! How can I help you today?");
+
+    // Simulate standard user typing behaviors on the active channel UI
+    await message.channel.sendTyping();
+
+    try {
+        // Target the stable, default Gemini Flash engine 
+        const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        
+        return message.reply(response.text());
+    } catch (error) {
+        console.error("Gemini Engine Runtime Exception:", error);
+        return message.reply("My processing elements ran into a connection failure!");
+    }
+}
 async execute(message, client) {
     try {
       if (message.author.bot || !message.guild) return;
