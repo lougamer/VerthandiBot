@@ -8,7 +8,27 @@
     "start": "node src/bot.js"
   },
   "dependencies": {
+    {
+  "name": "titanbot",
+  "version": "2.1.0",
+  "description": "A feature-rich Discord bot with music, system levels, logs, welcome card and dashboard features.",
+  "main": "src/bot.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/bot.js"
+  },
+{
+  "name": "titanbot",
+  "version": "2.1.0",
+  "description": "A feature-rich Discord bot with music, system levels, logs, welcome card and dashboard features.",
+  "main": "src/bot.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/bot.js"
+  },
+  "dependencies": {
     "@discordjs/opus": "^0.9.0",
+    "@google/generative-ai": "^0.21.0",
     "canvas": "^2.11.2",
     "discord.js": "^14.15.2",
     "dotenv": "^16.4.5",
@@ -19,4 +39,3 @@
     "node": ">=20.0.0"
   }
 }
-
